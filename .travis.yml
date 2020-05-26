@@ -1,0 +1,23 @@
+language: generic 
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t phuongminh2303/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run CI=true phuongminh2303/react-test npm test -- --coverage
+
+after_success: 
+  - docker build -t phuongminh2303/multi-client ./client
+  - docker build -t phuongminh2303/multi-nginx ./nginx
+  - docker build -t phuongminh2303/multi-server ./server
+  - docker build -t phuongminh2303/multi-worker ./worker
+  # Login to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push image to docker hub
+  - docker push phuongminh2303/multi-client
+  - docker push phuongminh2303/multi-nginx
+  - docker push phuongminh2303/multi-server
+  - docker push phuongminh2303/multi-worker
